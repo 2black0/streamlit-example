@@ -5,6 +5,8 @@ import tempfile
 import os
 import shutil
 import glob
+from io import BytesIO
+import base64
 
 model = YOLO('yolov8n.pt')
 
@@ -17,7 +19,7 @@ def main():
     st.title('Image Upload and Object Detection with YOLOv8')
 
     uploaded_file = st.file_uploader("Upload an image", type=['jpg', 'jpeg', 'png'], accept_multiple_files=False)
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns([2, 2])
 
     if uploaded_file is not None:
         # Delete the results directory each time a new image is uploaded
@@ -42,10 +44,20 @@ def main():
                     result_image = Image.open(latest_file)
                     col2.header("Detected Objects")
                     col2.image(result_image, use_column_width=True)
+
+                    # Add a download button for the result image
+                    if st.button("Download Result Image"):
+                        download_image(result_image, "Result_Image")
+
                 else:
                     col2.write("No detectable objects in the image or results are not saved.")
             else:
                 col2.write("No output directory found, check model configuration.")
+
+def download_image(img, filename):
+    """Downloads the given image."""
+    img.save(filename + ".jpg", "JPEG")
+    st.success(f"Downloaded {filename}.jpg")
 
 if __name__ == "__main__":
     main()
