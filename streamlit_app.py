@@ -47,8 +47,5 @@ def main():
             else:
                 col2.write("No output directory found, check model configuration.")
 
-    if st.button("Clear Image"):
-        st.experimental_rerun()
-
 if __name__ == "__main__":
     main()
