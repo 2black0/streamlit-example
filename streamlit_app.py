@@ -1,7 +1,6 @@
 import streamlit as st
 from PIL import Image
-from ultralytics import YOLO  # This should be adjusted based on actual import if yolov8 is available differently
-from io import BytesIO
+from ultralytics import YOLO  # Adjust this import based on actual import if yolov8 is available differently
 import tempfile
 
 # Load the YOLO model from local .pt file
@@ -19,9 +18,9 @@ def main():
         col1.image(image, use_column_width=True)
 
         # Use a temporary file to handle the image
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_image:
+        with tempfile.NamedTemporaryFile(delete=True, suffix='.jpg') as temp_image:
             image.save(temp_image.name)  # Save the image to a temporary file
-            temp_image.close()  # Close the file so it can be reopened by the model
+            temp_image.flush()
 
             # Process the image using the model
             results = model([temp_image.name])
@@ -29,8 +28,11 @@ def main():
 
             # Display the object detection results
             col2.header("Detected Objects")
-            result_image = Image.open(BytesIO(results.show(save=False)))
-            col2.image(result_image, use_column_width=True)
+            result_image = results.show(save=False)  # Attempt to get image display directly
+            if result_image is not None:
+                col2.image(result_image, use_column_width=True)
+            else:
+                col2.write("No detectable objects in the image.")
 
     if st.button("Clear Image"):
         st.experimental_rerun()
