@@ -8,11 +8,10 @@ import glob
 
 model = YOLO('yolov8n.pt')
 
-def clear_directory(path):
-    """Utility function to clear the contents of the specified directory."""
+def delete_directory(path):
+    """Utility function to delete the specified directory."""
     if os.path.exists(path):
         shutil.rmtree(path)
-    os.makedirs(path, exist_ok=True)
 
 def main():
     st.title('Image Upload and Object Detection with YOLOv8')
@@ -21,8 +20,8 @@ def main():
     col1, col2 = st.columns(2)
 
     if uploaded_file is not None:
-        # Clear the results directory each time a new image is uploaded
-        clear_directory('runs/detect/predict/')
+        # Delete the results directory each time a new image is uploaded
+        delete_directory('runs/detect/predict/')
 
         image = Image.open(uploaded_file).convert('RGB')
         col1.header("Original Image")
@@ -31,19 +30,22 @@ def main():
         with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_image:
             image.save(temp_image.name)
 
-            # Run inference and automatically save in the specified directory
+            # Run inference and check for the creation of the directory
             model.predict(temp_image.name, save=True, imgsz=320, conf=0.25)
 
-            # Finding the latest file in the specified directory
-            list_of_files = glob.glob('runs/detect/predict/*')  # * means all if need specific format then *.csv
-            latest_file = max(list_of_files, key=os.path.getctime) if list_of_files else None
+            # Ensure the directory is recreated and check for the latest file
+            if os.path.exists('runs/detect/predict/'):
+                list_of_files = glob.glob('runs/detect/predict/*')
+                latest_file = max(list_of_files, key=os.path.getctime) if list_of_files else None
 
-            if latest_file:
-                result_image = Image.open(latest_file)
-                col2.header("Detected Objects")
-                col2.image(result_image, use_column_width=True)
+                if latest_file:
+                    result_image = Image.open(latest_file)
+                    col2.header("Detected Objects")
+                    col2.image(result_image, use_column_width=True)
+                else:
+                    col2.write("No detectable objects in the image or results are not saved.")
             else:
-                col2.write("No detectable objects in the image or results are not saved.")
+                col2.write("No output directory found, check model configuration.")
 
     if st.button("Clear Image"):
         st.experimental_rerun()
