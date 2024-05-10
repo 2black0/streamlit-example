@@ -1,9 +1,10 @@
 import streamlit as st
 from PIL import Image
-from ultralytics import YOLO  # Make sure this import matches the package structure
+from ultralytics import YOLO
 import tempfile
+import os
+import glob
 
-# Load the YOLO model from local .pt file
 model = YOLO('yolov8n.pt')
 
 def main():
@@ -13,20 +14,22 @@ def main():
     col1, col2 = st.columns(2)
 
     if uploaded_file is not None:
-        image = Image.open(uploaded_file).convert('RGB')  # Convert image to RGB
+        image = Image.open(uploaded_file).convert('RGB')
         col1.header("Original Image")
         col1.image(image, use_column_width=True)
 
-        # Use a temporary file to handle the image
         with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_image:
-            image.save(temp_image.name)  # Save the image to a temporary file
+            image.save(temp_image.name)
 
-            # Run inference on the image with specific arguments
-            results = model.predict(temp_image.name, save=True, imgsz=320, conf=0.5)
+            # Run inference and automatically save in the specified directory
+            model.predict(temp_image.name, save=True, imgsz=320, conf=0.25)
 
-            # Check for the saved output and display
-            if results is not None and hasattr(results, 'files'):
-                result_image = Image.open(results.files[0])  # Load the saved result image
+            # Finding the latest file in the specified directory
+            list_of_files = glob.glob('runs/detect/predict/*')  # * means all if need specific format then *.csv
+            latest_file = max(list_of_files, key=os.path.getctime) if list_of_files else None
+
+            if latest_file:
+                result_image = Image.open(latest_file)
                 col2.header("Detected Objects")
                 col2.image(result_image, use_column_width=True)
             else:
