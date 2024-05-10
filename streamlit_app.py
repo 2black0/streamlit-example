@@ -3,9 +3,16 @@ from PIL import Image
 from ultralytics import YOLO
 import tempfile
 import os
+import shutil
 import glob
 
 model = YOLO('yolov8n.pt')
+
+def clear_directory(path):
+    """Utility function to clear the contents of the specified directory."""
+    if os.path.exists(path):
+        shutil.rmtree(path)
+    os.makedirs(path, exist_ok=True)
 
 def main():
     st.title('Image Upload and Object Detection with YOLOv8')
@@ -14,6 +21,9 @@ def main():
     col1, col2 = st.columns(2)
 
     if uploaded_file is not None:
+        # Clear the results directory each time a new image is uploaded
+        clear_directory('runs/detect/predict/')
+
         image = Image.open(uploaded_file).convert('RGB')
         col1.header("Original Image")
         col1.image(image, use_column_width=True)
