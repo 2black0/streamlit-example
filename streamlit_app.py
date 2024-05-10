@@ -1,6 +1,6 @@
 import streamlit as st
 from PIL import Image
-from ultralytics import YOLO # Adjust the import based on actual package structure
+from ultralytics import YOLO  # This should be adjusted based on actual import if yolov8 is available differently
 from io import BytesIO
 import tempfile
 
@@ -14,7 +14,7 @@ def main():
     col1, col2 = st.columns(2)
 
     if uploaded_file is not None:
-        image = Image.open(uploaded_file)
+        image = Image.open(uploaded_file).convert('RGB')  # Convert image to RGB
         col1.header("Original Image")
         col1.image(image, use_column_width=True)
 
